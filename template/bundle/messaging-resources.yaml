@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: enmasse.io/v1beta1
+  kind: AddressSpace
+  metadata:
+    name: stocks-app-address-space
+    namespace: stocks-team
+  spec:
+    type: standard
+    plan: standard-medium
+    endpoints:
+    - name: messaging
+      service: messaging
+      expose:
+        type: route
+        routeServicePort: amqps
+        routeTlsTermination: passthrough
+      # cert:
+      #   provider: openshift
+      exports:
+      - name: messaging-config
+        kind: ConfigMap
+- apiVersion: enmasse.io/v1beta1
+  kind: Address
+  metadata:
+    name: stocks-app-address-space.stock-moves
+    namespace: stocks-team
+  spec:
+    address: stock-moves
+    type: queue
+    plan: standard-medium-queue
+- apiVersion: user.enmasse.io/v1beta1
+  kind: MessagingUser
+  metadata:
+    name: stocks-app-address-space.stocks-app-messaginguser
+    namespace: stocks-team
+  spec:
+    username: system:serviceaccount:stocks-team:default
+    authentication:
+      type: serviceaccount
+    authorization:
+    - operations: ["send", "recv"]
+      addresses: ["stock-moves"]
+- apiVersion: user.enmasse.io/v1beta1
+  kind: MessagingUser
+  metadata:
+    name: stocks-app-address-space.stocks-app-messaginguser-basic
+    namespace: stocks-team
+  spec:
+    username: stocks-app-messaginguser-basic
+    authentication:
+      type: password
+      password: c3RvY2tzLWFwcC1tZXNzYWdpbmd1c2VyLWJhc2lj
+    authorization:
+    - operations: ["send", "recv"]
+      addresses: ["stock-moves"]
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    name: messaging-config
+    namespace: stocks-team
+  rules:
+    - apiGroups: [ "" ]
+      resources: [ "configmaps" ]
+      verbs: [ "create" ]
+    - apiGroups: [ "" ]
+      resources: [ "configmaps" ]
+      resourceNames: [ "messaging-config" ]
+      verbs: [ "get", "update", "patch" ]
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    name: messaging-config
+    namespace: stocks-team
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: messaging-config
+  subjects:
+  - kind: ServiceAccount
+    name: address-space-controller
+    namespace: enmasse-infra
