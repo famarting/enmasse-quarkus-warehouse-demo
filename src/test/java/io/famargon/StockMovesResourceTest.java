@@ -20,7 +20,7 @@ public class StockMovesResourceTest {
           .when().get("/stocks")
           .then()
              .statusCode(200)
-             .body(is("{}"));
+             .body(is("[]"));
     }
 
     @Disabled

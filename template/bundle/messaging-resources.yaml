@@ -30,6 +30,15 @@ items:
     address: stock-moves
     type: queue
     plan: standard-medium-queue
+- apiVersion: enmasse.io/v1beta1
+  kind: Address
+  metadata:
+    name: stocks-app-address-space.stock-changelog
+    namespace: stocks-team
+  spec:
+    address: stock-changelog
+    type: topic
+    plan: standard-medium-topic
 - apiVersion: user.enmasse.io/v1beta1
   kind: MessagingUser
   metadata:
@@ -41,7 +50,7 @@ items:
       type: serviceaccount
     authorization:
     - operations: ["send", "recv"]
-      addresses: ["stock-moves"]
+      addresses: ["stock-moves", "stock-changelog"]
 - apiVersion: user.enmasse.io/v1beta1
   kind: MessagingUser
   metadata:
@@ -54,7 +63,7 @@ items:
       password: c3RvY2tzLWFwcC1tZXNzYWdpbmd1c2VyLWJhc2lj
     authorization:
     - operations: ["send", "recv"]
-      addresses: ["stock-moves"]
+      addresses: ["stock-moves", "stock-changelog"]
 - apiVersion: rbac.authorization.k8s.io/v1
   kind: Role
   metadata:

@@ -1,41 +1,41 @@
 package io.famargon;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
+import java.util.UUID;
 
 import javax.inject.Singleton;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.eclipse.microprofile.reactive.messaging.Outgoing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.smallrye.reactive.messaging.annotations.Broadcast;
 import io.vertx.core.json.JsonObject;
 
 /**
  * OrdersProcessor
  */
 @Singleton
-@Path("/stocks")
 public class StockProcessor {
+
+    private String processorName = Optional.ofNullable(System.getenv("POD_NAME")).orElseGet(()->UUID.randomUUID().toString());
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    Map<String, Integer> stocks = new ConcurrentHashMap<>();
-
+    @Broadcast
     @Incoming("stock-moves-input")
-    public void receive(JsonObject json) {
+    @Outgoing("stock-changelog-output")
+    public JsonObject receive(JsonObject json) {
+        logger.info("Stock received... {}", json);
         StockMove move = json.mapTo(StockMove.class);
-        stocks.compute(move.getItem(), (key, value) -> value == null ? move.quantity : (value + move.quantity) );
-        logger.info("Stocks status {}", stocks);
+        JsonObject result = new JsonObject();
+        result.put("processedBy", processorName);
+        result.put("item", move.getItem());
+        result.put("quantity", move.getQuantity());
+        result.put("approved", true);
+        return result;
     }
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, Integer> stocksStatus() {
-        return stocks;
-    }
+
 }

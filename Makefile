@@ -24,6 +24,7 @@ dev:
 	mvn compile quarkus:dev
 
 build_jar:
+	mvn clean
 	mvn package
 
 build_native: 

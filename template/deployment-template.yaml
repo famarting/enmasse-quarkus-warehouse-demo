@@ -36,6 +36,20 @@ objects:
                 configMapKeyRef:
                   name:  messaging-config
                   key:  service.host
+            - name: mp.messaging.outgoing.stock-changelog-output.host
+              valueFrom:
+                configMapKeyRef:
+                  name:  messaging-config
+                  key:  service.host
+            - name: mp.messaging.incoming.stock-changelog-input.host
+              valueFrom:
+                configMapKeyRef:
+                  name:  messaging-config
+                  key:  service.host
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           livenessProbe:
             httpGet:
               path: /health
@@ -57,7 +71,7 @@ objects:
       name: http
     selector:
       app: amqp-cloud-native-app
-    type: ClusterIP
+    type: LoadBalancer
 - apiVersion: route.openshift.io/v1
   kind: Route
   metadata:
