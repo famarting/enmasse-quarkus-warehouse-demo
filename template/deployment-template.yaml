@@ -24,28 +24,20 @@ objects:
           imagePullPolicy: Always
           name: amqp-cloud-native-app
           env:
-            # - name:  mp.messaging.outgoing.stock-moves-output.host #both versions work
-            - name: MP_MESSAGING_OUTGOING_STOCK_MOVES_OUTPUT_HOST
+            - name: amqp-server
               valueFrom:
                 configMapKeyRef:
                   name:  messaging-config
                   key:  service.host
-            # - name:  mp.messaging.incoming.stock-moves-input.host #both versions work
-            - name:  MP_MESSAGING_INCOMING_STOCK_MOVES_INPUT_HOST
+            - name: amqp-port
               valueFrom:
                 configMapKeyRef:
                   name:  messaging-config
-                  key:  service.host
-            - name: mp.messaging.outgoing.stock-changelog-output.host
-              valueFrom:
-                configMapKeyRef:
-                  name:  messaging-config
-                  key:  service.host
-            - name: mp.messaging.incoming.stock-changelog-input.host
-              valueFrom:
-                configMapKeyRef:
-                  name:  messaging-config
-                  key:  service.host
+                  key:  service.port.amqp
+            - name: amqp-username
+              value: stocks-app-messaginguser-basic
+            - name: amqp-password
+              value: stocks-app-messaginguser-basic
             - name: POD_NAME
               valueFrom:
                 fieldRef:
