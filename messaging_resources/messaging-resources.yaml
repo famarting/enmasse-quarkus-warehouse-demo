@@ -23,6 +23,7 @@ items:
         kind: ConfigMap
     authenticationService:
       name: none-authservice
+      # name: standard-authservice
 - apiVersion: enmasse.io/v1beta1
   kind: Address
   metadata:
@@ -83,7 +84,7 @@ items:
       password: ZGVtby11c2Vy
     authorization:
     - operations: ["send", "recv"]
-      addresses: ["orders", "accepted-orders", "events", "stocks", "temp*"]
+      addresses: ["orders", "processed-orders", "events", "stocks", "*temp.*"]
 - apiVersion: rbac.authorization.k8s.io/v1
   kind: Role
   metadata:

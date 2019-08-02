@@ -7,8 +7,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.reactive.messaging.Incoming;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.smallrye.reactive.messaging.annotations.Emitter;
 import io.smallrye.reactive.messaging.annotations.Stream;
@@ -45,6 +43,7 @@ public class OrdersService {
 
             if (result.containsKey("error")) {
                 order.put("error", result.getString("error"));
+                order.put("approved", false);
             } else if (result.getBoolean("approved", false)) {
                 order.put("approved", true);
             } else {

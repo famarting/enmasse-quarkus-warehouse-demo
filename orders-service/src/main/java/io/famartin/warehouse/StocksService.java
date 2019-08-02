@@ -89,16 +89,19 @@ public class StocksService {
                                         .build();
                                 sender.result().send(requestMessage);
                             } else {
+                                logger.error("Request to stocks-service returned error", sender.cause());
                                 stage.completeExceptionally(sender.cause());
                                 connection.close(Future.future());
                             }
                         });
                     } else {
+                        logger.error("Request to stocks-service returned error", replyReceiver.cause());
                         stage.completeExceptionally(replyReceiver.cause());
                         connection.close(Future.future());
                     }
                 });
             } else {
+                logger.error("Request to stocks-service returned error", ar.cause());
                 stage.completeExceptionally(ar.cause());
             }
         });
