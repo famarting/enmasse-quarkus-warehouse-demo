@@ -78,7 +78,7 @@ public class WarehouseResource {
     // .map(JsonObject::encode);
     // }
 
-    public void init(@Observes @Priority(javax.interceptor.Interceptor.Priority.APPLICATION + 1000) StartupEvent ev) throws InterruptedException, ExecutionException, TimeoutException {
+    public void init(@Observes StartupEvent ev) throws InterruptedException, ExecutionException, TimeoutException {
         AmqpClient client = AmqpClient.create(vertx, new AmqpClientOptions()
                     .setSsl(false)
                     .setHost(amqpHost)
