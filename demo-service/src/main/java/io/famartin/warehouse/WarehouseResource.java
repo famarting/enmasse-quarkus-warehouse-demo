@@ -7,7 +7,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.annotation.Priority;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -50,7 +49,7 @@ public class WarehouseResource {
     @Inject
     Vertx vertx;
 
-    @ConfigProperty(name = "amqp-server")
+    @ConfigProperty(name = "amqp-host")
     String amqpHost;
 
     @ConfigProperty(name = "amqp-port")
@@ -116,19 +115,22 @@ public class WarehouseResource {
         client.connect(ar -> {
             if (ar.succeeded()) {
                 AmqpConnection connection = ar.result();
-                connection.createReceiver("events", message -> {
-                    // You got the message, let's reply.
-                    if (sseEventSink != null) {
-                        OutboundSseEvent sseEvent = this.eventBuilder
-                                .id(message.id())
-                                .mediaType(MediaType.APPLICATION_JSON_TYPE)
-                                .data(message.bodyAsJsonObject().encode())
-                                .build();
-                        sseEventSink.send(sseEvent);
+                connection.createReceiver("events", conn -> {
+                    if (conn.succeeded()) {
+                        conn.result().handler( message -> {
+                            if (sseEventSink != null) {
+                                OutboundSseEvent sseEvent = this.eventBuilder
+                                        .id(message.id())
+                                        .mediaType(MediaType.APPLICATION_JSON_TYPE)
+                                        .data(message.bodyAsJsonObject().encode())
+                                        .build();
+                                sseEventSink.send(sseEvent);
+                            }
+                        });
+                        future.complete(null);
+                    }else {
+                        future.completeExceptionally(conn.cause());
                     }
-                }, done -> {
-                    // We are done, for the receiver side
-                    future.complete(null);
                 });
             } else {
                 future.completeExceptionally(ar.cause());

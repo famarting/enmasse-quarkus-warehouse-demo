@@ -12,6 +12,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.amqp.AmqpClient;
@@ -27,6 +29,8 @@ import io.vertx.core.json.JsonObject;
 @Singleton
 public class StocksService {
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private static final String STOCKS_ADDRESS = "stocks";
 
     @Inject
@@ -35,7 +39,7 @@ public class StocksService {
     @Inject
     Vertx vertx;
 
-    @ConfigProperty(name = "amqp-server")
+    @ConfigProperty(name = "amqp-host")
     String amqpHost;
 
     @ConfigProperty(name = "amqp-port")
@@ -59,20 +63,24 @@ public class StocksService {
             if(ar.succeeded()) {
                 AmqpConnection connection = ar.result();
                 connection.createAnonymousSender(responseSender -> {
-                    // You got an anonymous sender, used to send the reply
-                    // Now register the main receiver:
-                    connection.createReceiver(STOCKS_ADDRESS, msg -> {
-                        // events.sendEvent("Stocks received request");
-                        // You got the message, let's reply.
-                        AmqpMessage response = AmqpMessage.create()
+                    connection.createReceiver(STOCKS_ADDRESS, conn -> {
+                        if (conn.succeeded()) {
+                            conn.result().handler(msg ->{
+                                AmqpMessage response = AmqpMessage.create()
                                 .address(msg.replyTo())
                                 .correlationId(msg.id()) // send the message id as correlation id
                                 .withJsonObjectAsBody(processStockRequests(msg.bodyAsJsonObject()))
                                 .build();
-                        responseSender.result().send(response);
-                    }, done -> {
-                        // We are done, for the receiver side
-                        future.complete(null);
+                                responseSender.result().sendWithAck(response, ack -> {
+                                    if(ack.failed()) {
+                                        logger.error("Stock response rejected", ack.cause());
+                                    }
+                                });
+                            });
+                            future.complete(null);
+                        } else {
+                            future.completeExceptionally(conn.cause());
+                        }
                     });
                 });
             } else {
@@ -80,6 +88,7 @@ public class StocksService {
             }
         });
         future.get(15, TimeUnit.SECONDS);
+        logger.info("Stocks listener connected");
     }
 
     private ConcurrentHashMap<String, Integer> stock = new ConcurrentHashMap<>();

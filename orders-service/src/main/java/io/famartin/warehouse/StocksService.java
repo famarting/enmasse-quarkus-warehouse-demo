@@ -34,7 +34,7 @@ public class StocksService {
     @Inject
     Vertx vertx;
 
-    @ConfigProperty(name = "amqp-server")
+    @ConfigProperty(name = "amqp-host")
     String amqpHost;
 
     @ConfigProperty(name = "amqp-port")
@@ -74,11 +74,11 @@ public class StocksService {
                         String replyToAddress = replyReceiver.result().address();
                         replyReceiver.result().handler(msg -> {
                             stage.complete(msg.bodyAsJsonObject());
-                            connection.close(Future.future());
+                            connection.close(Future.succeededFuture());
                         });
                         replyReceiver.result().exceptionHandler(ex -> {
                             logger.error("Error in stocks service ", ex);
-                            connection.close(Future.future());
+                            connection.close(Future.succeededFuture());
                         });
                         connection.createSender(STOCKS_ADDRESS, sender -> {
                             if(sender.succeeded()) {
@@ -91,13 +91,13 @@ public class StocksService {
                             } else {
                                 logger.error("Request to stocks-service returned error", sender.cause());
                                 stage.completeExceptionally(sender.cause());
-                                connection.close(Future.future());
+                                connection.close(Future.succeededFuture());
                             }
                         });
                     } else {
                         logger.error("Request to stocks-service returned error", replyReceiver.cause());
                         stage.completeExceptionally(replyReceiver.cause());
-                        connection.close(Future.future());
+                        connection.close(Future.succeededFuture());
                     }
                 });
             } else {

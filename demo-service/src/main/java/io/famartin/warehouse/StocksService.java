@@ -34,7 +34,7 @@ public class StocksService {
     @Inject
     Vertx vertx;
 
-    @ConfigProperty(name = "amqp-server")
+    @ConfigProperty(name = "amqp-host")
     String amqpHost;
 
     @ConfigProperty(name = "amqp-port")
@@ -53,7 +53,8 @@ public class StocksService {
             .setHost(amqpHost)
             .setPort(amqpPort)
             .setUsername(amqpUsername)
-            .setPassword(amqpPassword));
+            .setPassword(amqpPassword)
+            .setConnectTimeout(5000));
     }
 
     public CompletionStage<JsonObject> addStock(String requestId, String itemId, int quantity) {
@@ -74,11 +75,11 @@ public class StocksService {
                         String replyToAddress = replyReceiver.result().address();
                         replyReceiver.result().handler(msg -> {
                             stage.complete(msg.bodyAsJsonObject());
-                            connection.close(Future.future());
+                            connection.close(Future.succeededFuture());
                         });
                         replyReceiver.result().exceptionHandler(ex -> {
                             logger.error("Error in stocks service ", ex);
-                            connection.close(Future.future());
+                            connection.close(Future.succeededFuture());
                         });
                         connection.createSender(STOCKS_ADDRESS, sender -> {
                             if(sender.succeeded()) {
@@ -90,15 +91,16 @@ public class StocksService {
                                 sender.result().send(requestMessage);
                             } else {
                                 stage.completeExceptionally(sender.cause());
-                                connection.close(Future.future());
+                                connection.close(Future.succeededFuture());
                             }
                         });
                     } else {
                         stage.completeExceptionally(replyReceiver.cause());
-                        connection.close(Future.future());
+                        connection.close(Future.succeededFuture());
                     }
                 });
             } else {
+                logger.error("Connect failed", ar.cause());
                 stage.completeExceptionally(ar.cause());
             }
         });
