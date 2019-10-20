@@ -78,6 +78,7 @@ public class StocksService {
                         });
                         replyReceiver.result().exceptionHandler(ex -> {
                             logger.error("Error in stocks service ", ex);
+                            stage.completeExceptionally(ex);
                             connection.close(Future.succeededFuture());
                         });
                         connection.createSender(STOCKS_ADDRESS, sender -> {

@@ -33,6 +33,8 @@ public class StocksService {
 
     private static final String STOCKS_ADDRESS = "stocks";
 
+    private ConcurrentHashMap<String, Integer> stock = new ConcurrentHashMap<>();
+    
     @Inject
     EventsService events;
 
@@ -91,9 +93,7 @@ public class StocksService {
         logger.info("Stocks listener connected");
     }
 
-    private ConcurrentHashMap<String, Integer> stock = new ConcurrentHashMap<>();
-
-    private JsonObject processStockRequests(JsonObject request) {
+    private synchronized JsonObject processStockRequests(JsonObject request) {
         if(request.containsKey("action") && request.containsKey("item-id") && request.containsKey("quantity") && request.getInteger("quantity")!=null && request.getInteger("quantity")>0) {
             String action = request.getString("action");
             String itemId = request.getString("item-id");
