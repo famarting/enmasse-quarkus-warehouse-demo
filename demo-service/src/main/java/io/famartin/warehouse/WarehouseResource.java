@@ -25,7 +25,7 @@ import org.reactivestreams.Publisher;
 
 import io.quarkus.runtime.StartupEvent;
 import io.reactivex.Flowable;
-import io.smallrye.reactive.messaging.annotations.Stream;
+import io.smallrye.reactive.messaging.annotations.Channel;
 import io.vertx.amqp.AmqpClient;
 import io.vertx.amqp.AmqpClientOptions;
 import io.vertx.amqp.AmqpConnection;
@@ -35,12 +35,8 @@ import io.vertx.core.json.JsonObject;
 @Path("/warehouse")
 public class WarehouseResource {
 
-    // @Inject
-    // @Stream("events")
-    // Publisher<JsonObject> events;
-
     @Inject
-    @Stream("processed-orders")
+    @Channel("processed-orders")
     Publisher<JsonObject> orders;
 
     @Inject

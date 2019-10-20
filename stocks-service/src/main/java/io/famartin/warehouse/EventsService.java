@@ -7,8 +7,8 @@ import java.util.UUID;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.smallrye.reactive.messaging.annotations.Channel;
 import io.smallrye.reactive.messaging.annotations.Emitter;
-import io.smallrye.reactive.messaging.annotations.Stream;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -21,7 +21,7 @@ public class EventsService {
             .orElseGet(() -> UUID.randomUUID().toString());
     
     @Inject
-    @Stream("events")
+    @Channel("events")
     Emitter<JsonObject> events;
 
     public void sendEvent(String event) {

@@ -12,15 +12,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import io.smallrye.reactive.messaging.annotations.Channel;
 import io.smallrye.reactive.messaging.annotations.Emitter;
-import io.smallrye.reactive.messaging.annotations.Stream;
 import io.vertx.core.json.JsonObject;
 
 @Path("/orders")
 public class OrdersResource {
 
     @Inject
-    @Stream("orders")
+    @Channel("orders")
     Emitter<JsonObject> orders;
 
     @Inject
