@@ -30,7 +30,13 @@ You can check the application is running successfully
 ```bash
 oc get pod
 ```
+### Quick demo after deploying
 
+```bash
+./scripts/scripts-demo/add_stock.sh
+./scripts/scripts-demo/send_orders.sh
+./scripts/scripts-demo/watch_orders.sh
+```
 
 [quarkus]: <https://quarkus.io/>
 [enmasse]: <https://enmasse.io/>
