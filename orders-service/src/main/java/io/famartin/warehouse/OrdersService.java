@@ -2,11 +2,13 @@ package io.famartin.warehouse;
 
 import java.util.Random;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Flow.Publisher;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.eclipse.microprofile.reactive.streams.operators.PublisherBuilder;
 
 import io.smallrye.reactive.messaging.annotations.Channel;
 import io.smallrye.reactive.messaging.annotations.Emitter;
@@ -47,11 +49,12 @@ public class OrdersService {
                     order.put("approved", false);
                 } else if (result.getBoolean("approved", false)) {
                     order.put("approved", true);
+                    processedOrders.send(order);
                 } else {
                     order.put("approved", false);
                     order.put("reason", result.getString("message"));
+                    //TODO send stock request
                 }
-                processedOrders.send(order);
                 events.sendEvent("Order " + order.getString("order-id") + " processed");
             });
     }

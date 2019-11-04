@@ -1,9 +1,11 @@
 package io.famartin.warehouse;
 
 import java.time.Instant;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -32,6 +34,10 @@ public class StocksService {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final String STOCKS_ADDRESS = "stocks";
+
+    private ConcurrentHashMap<String, Integer> stock = new ConcurrentHashMap<>();
+
+    private ConcurrentHashMap<String, Queue<JsonObject>> stockAddRequests = new ConcurrentHashMap<>();
 
     @Inject
     EventsService events;
@@ -91,9 +97,7 @@ public class StocksService {
         logger.info("Stocks listener connected");
     }
 
-    private ConcurrentHashMap<String, Integer> stock = new ConcurrentHashMap<>();
-
-    private JsonObject processStockRequests(JsonObject request) {
+    private synchronized JsonObject processStockRequests(JsonObject request) {
         if(request.containsKey("action") && request.containsKey("item-id") && request.containsKey("quantity") && request.getInteger("quantity")!=null && request.getInteger("quantity")>0) {
             String action = request.getString("action");
             String itemId = request.getString("item-id");
@@ -102,6 +106,8 @@ public class StocksService {
                 JsonObject response = new JsonObject();
                 switch (StockAction.valueOf(action)) {
                     case ADD:
+                        Queue<JsonObject> requests = stockAddRequests.get(itemId);
+
                         Integer newStock = stock.compute(itemId, (id, currentStock) -> {
                             if ( currentStock == null ) {
                                 return quantity;
@@ -130,6 +136,11 @@ public class StocksService {
                         } else {
                             events.sendEvent("Stock updated, item: "+itemId+" quantity: "+result);
                         }
+                        break;
+                    case REQUEST:
+                        events.sendEvent("!!!!!!Stock increase request received for item "+itemId);
+                        stockAddRequests.computeIfAbsent(itemId, (id) -> new LinkedBlockingQueue<>())
+                            .add(request.getJsonObject("order"));
                         break;
                 }
                 response.put("timestamp", Instant.now().toString());

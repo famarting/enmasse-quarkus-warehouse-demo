@@ -60,6 +60,15 @@ items:
     address: stocks
     type: anycast
     plan: standard-medium-anycast
+- apiVersion: enmasse.io/v1beta1
+  kind: Address
+  metadata:
+    name: warehouse-address-space.stocks/requests
+    namespace: warehouse
+  spec:
+    address: stocks/requests
+    type: topic
+    plan: standard-small-topic
 # - apiVersion: user.enmasse.io/v1beta1
 #   kind: MessagingUser
 #   metadata:

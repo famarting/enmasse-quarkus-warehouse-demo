@@ -6,6 +6,7 @@ package io.famartin.warehouse;
 public enum StockAction {
 
     SUBSTRACT,
-    ADD;
+    ADD,
+    REQUEST;
 
 }
