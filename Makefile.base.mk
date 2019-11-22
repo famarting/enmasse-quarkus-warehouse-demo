@@ -15,6 +15,9 @@ container_native: build_native container_build_native $(CONTAINER_TARGETS)
 dev:
 	mvn compile quarkus:dev
 
+test:
+	mvn test
+
 build_jar:
 	mvn clean
 	mvn package -DskipTests
@@ -45,4 +48,4 @@ prepare_deployment_bundle:
 deployment_bundle: clean_deployment_bundle prepare_deployment_bundle
 	oc process -f ../template/deployment-template.yaml -p CONTAINER_IMAGE=$(PROJECT_TAG_NAME) -p SERVICE_NAME=$(PROJECT_NAME) -o yaml > deployment_bundle/$(PROJECT_NAME).yaml
 
-.PHONY: clean_deployment_bundle prepare_deployment_bundle deployment_bundle container_build_jvm container_build_native $(CONTAINER_TARGETS) dev build_jar build_native container container_native
+.PHONY: clean_deployment_bundle prepare_deployment_bundle deployment_bundle container_build_jvm container_build_native $(CONTAINER_TARGETS) dev test build_jar build_native container container_native
