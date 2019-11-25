@@ -1,6 +1,6 @@
 CONTAINER_CTL = docker
 
-DEV ?= true
+DEV ?= false
 
 ifeq ($(DEV), true)
 CONTAINER_REGISTRY = 172.30.1.1:5000
