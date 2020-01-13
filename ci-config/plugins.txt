@@ -1,0 +1,7 @@
+workflow-aggregator:2.6
+configuration-as-code-support:1.18
+configuration-as-code:1.30
+job-dsl:1.74
+workflow-job:2.33
+credentials-binding:1.18
+git:3.12.1

@@ -1,0 +1,35 @@
+jenkins:
+  systemMessage: "Enmasse + Quarkus demo jenkins"
+  # numExecutors: 5
+  # scmCheckoutRetryCount: 2
+  # mode: NORMAL
+
+  globalNodeProperties:
+    - envVars:
+        env:
+          - key: FOO
+            value: BAR
+
+  securityRealm:
+    local:
+      allowsSignup: false
+      enableCaptcha: false
+      users:
+        - id: admin
+          password: admin
+  authorizationStrategy: unsecured
+
+  crumbIssuer:
+    standard:
+      excludeClientIPFromCrumb: true
+
+  remotingSecurity:
+    enabled: true
+
+security:
+  globalJobDslSecurityConfiguration:
+    useScriptSecurity: false
+
+jobs:
+  - file: /var/jenkins_home/seeds/seed.groovy
+  # - url: giturlseed.groovy

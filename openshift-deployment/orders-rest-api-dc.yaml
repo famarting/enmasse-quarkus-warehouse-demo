@@ -1,0 +1,64 @@
+kind: DeploymentConfig
+apiVersion: v1
+metadata:
+  name: orders-rest-api
+spec:
+  template: 
+    metadata:
+      labels:
+        app: orders-rest-api
+    spec:
+      containers:
+      - env:
+        - name: amqp-host
+          valueFrom:
+            configMapKeyRef:
+              key: service.host
+              name: messaging-config
+        - name: amqp-port
+          valueFrom:
+            configMapKeyRef:
+              key: service.port.amqp
+              name: messaging-config
+        - name: amqp-username
+          value: demo-user
+        - name: amqp-password
+          value: demo-user
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        image: warehouse/orders-rest-api
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 15
+          timeoutSeconds: 7
+        name: orders-rest-api
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 7
+        terminationGracePeriodSeconds: 30
+  replicas: 1
+  triggers:
+    - type: ConfigChange 
+    - type: ImageChange 
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - orders-rest-api
+        from:
+          kind: ImageStreamTag
+          name: orders-rest-api:latest
+  strategy: 
+    type: Rolling
+  paused: false 
+  revisionHistoryLimit: 2 
+  minReadySeconds: 0 
