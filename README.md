@@ -1,8 +1,15 @@
-# enmasse-quarkus-demo 
+# Warehouse example application with Enmasse and Quarkus
 
-This repository shows an example microservices application combining [quarkus] and [enmasse]. Quarkus is a Java framework used to code the microservices and Enmasse is platform that runs on top of kubernetes/openshift and provides automatic deployment and management of messaging infrastructure used in this case to provide the queues, topics, and amqp networks used in the communication between the microservices showcased here.
+This repository contains an example application for orders processing in a warehouse, with the purpose of trying and showing different technologies. This is a diagram showcasing in high level how the application works
 
-### Pre-requisistes
+![app diagram](/img/diagram.png)
+
+## How it's implemented?
+
+This example microservices application is implemented combining [quarkus] and [enmasse]. Quarkus is a Java framework used to code the microservices and Enmasse is a platform that runs on top of kubernetes/openshift and provides automatic deployment and management of messaging infrastructure used in this case to provide the queues, topics, and amqp networks used for the communication between the microservices showcased here.
+
+## How to run it?
+
 The only prerequisite is having an openshift cluster with enmasse installed.
 You can find the instructions to install enmasse in the [enmasse docs]
 
