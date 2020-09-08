@@ -11,7 +11,10 @@ This example microservices application is implemented combining [quarkus] and [e
 ## How to run it?
 
 The only prerequisite is having an openshift cluster with enmasse installed.
-You can find the instructions to install enmasse in the [enmasse docs]
+You can install enmasse with
+```bash
+make install-enmasse
+```
 
 ### Package the application
 ```bash

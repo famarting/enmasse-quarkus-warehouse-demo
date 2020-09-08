@@ -27,4 +27,14 @@ login_container_registry:
 	$(CONTAINER_CTL) login $(CONTAINER_REGISTRY)
 endif
 
+install-enmasse:
+	wget https://github.com/EnMasseProject/enmasse/releases/download/0.31.2/enmasse-0.31.2.tgz
+	tar -xvf enmasse-0.31.2.tgz
+	rm -rf enmasse-0.31.2.tgz
+	oc new-project enmasse-infra
+	oc apply -f enmasse-0.31.2/install/bundles/enmasse/
+	oc apply -f enmasse-0.31.2/install/components/example-authservices/none-authservice.yaml
+	oc apply -f enmasse-0.31.2/install/components/example-plans
+	oc apply -f enmasse-0.31.2/install/components/example-roles
+
 .PHONY: login_container_registry clean_deployment_bundle prepare_deployment_bundle deployment_bundle copy_bundles container $(SERVICES)

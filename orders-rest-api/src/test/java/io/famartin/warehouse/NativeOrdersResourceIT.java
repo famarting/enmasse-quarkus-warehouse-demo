@@ -1,8 +1,8 @@
 package io.famartin.warehouse;
 
-import io.quarkus.test.junit.SubstrateTest;
+import io.quarkus.test.junit.NativeImageTest;
 
-@SubstrateTest
+@NativeImageTest
 public class NativeOrdersResourceIT extends OrdersResourceTest {
 
     // Execute the same tests but in native mode.
