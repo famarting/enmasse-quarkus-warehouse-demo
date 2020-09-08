@@ -37,4 +37,7 @@ install-enmasse:
 	oc apply -f enmasse-0.31.2/install/components/example-plans
 	oc apply -f enmasse-0.31.2/install/components/example-roles
 
+deploy-mongo:
+	oc apply -f stocks-service/mongodb
+
 .PHONY: login_container_registry clean_deployment_bundle prepare_deployment_bundle deployment_bundle copy_bundles container $(SERVICES)

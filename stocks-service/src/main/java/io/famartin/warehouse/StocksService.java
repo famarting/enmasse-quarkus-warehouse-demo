@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.quarkus.runtime.StartupEvent;
+import io.smallrye.mutiny.tuples.Tuple2;
 import io.vertx.amqp.AmqpClient;
 import io.vertx.amqp.AmqpClientOptions;
 import io.vertx.amqp.AmqpConnection;
@@ -35,6 +36,9 @@ public class StocksService {
 
     @Inject
     EventsService events;
+
+    @Inject
+    StocksStorage stocksStorage;
 
     @Inject
     Vertx vertx;
@@ -91,8 +95,6 @@ public class StocksService {
         logger.info("Stocks listener connected");
     }
 
-    private ConcurrentHashMap<String, Integer> stock = new ConcurrentHashMap<>();
-
     private JsonObject processStockRequests(JsonObject request) {
         if(request.containsKey("action") && request.containsKey("item-id") && request.containsKey("quantity") && request.getInteger("quantity")!=null && request.getInteger("quantity")>0) {
             String action = request.getString("action");
@@ -102,26 +104,16 @@ public class StocksService {
                 JsonObject response = new JsonObject();
                 switch (StockAction.valueOf(action)) {
                     case ADD:
-                        Integer newStock = stock.compute(itemId, (id, currentStock) -> {
-                            if ( currentStock == null ) {
-                                return quantity;
-                            } else {
-                                return currentStock + quantity;
-                            }
-                        });
+                        Integer newStock = stocksStorage.addStock(itemId, quantity);
                         events.sendEvent("Stock updated, item: "+itemId+" quantity: "+newStock);
                         break;
                     case SUBSTRACT:
-                        Integer result = stock.computeIfPresent(itemId, (id, currentStock) -> {
-                            if(currentStock >= quantity) {
-                                response.put("approved", true);
-                                return currentStock - quantity;
-                            } else {
-                                response.put("approved", false);
-                                response.put("message", "Stock request exceeded current stock").put("original-request", request);
-                                return currentStock;
-                            }
-                        });
+                        Tuple2<Boolean, Integer> substractResult =  stocksStorage.substractStock(itemId, quantity);
+                        response.put("approved", substractResult.getItem1());
+                        if (!substractResult.getItem1()) {
+                            response.put("message", "Stock request exceeded current stock").put("original-request", request);
+                        }
+                        Integer result = substractResult.getItem2();
                         if (result == null) {
                             response.put("approved", false);
                             response.put("message", "There is not stock for that item").put("original-request", request);
@@ -135,6 +127,7 @@ public class StocksService {
                 response.put("timestamp", Instant.now().toString());
                 return response;
             } catch (IllegalArgumentException e) {
+                logger.error("Bad request", e);
                 return new JsonObject().put("error", String.format("Bad request, action %s not exists", action)).put("original-request", request);
             }
         } else {

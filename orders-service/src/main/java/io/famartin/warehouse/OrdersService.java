@@ -6,9 +6,10 @@ import java.util.concurrent.CompletionStage;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.eclipse.microprofile.reactive.messaging.Channel;
-import org.eclipse.microprofile.reactive.messaging.Emitter;
+import io.smallrye.reactive.messaging.annotations.Channel;
+import io.smallrye.reactive.messaging.annotations.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.eclipse.microprofile.reactive.messaging.Outgoing;
 
 import io.vertx.core.json.JsonObject;
 
@@ -27,8 +28,9 @@ public class OrdersService {
     StocksService stocks;
 
     @Inject
-    @Channel("processed-orders")
-    Emitter<JsonObject>  processedOrders;
+    ProcessedOrdersService processedOrdersService;
+    // @Channel("processed-orders")
+    // Emitter<JsonObject>  processedOrders;
 
     @Incoming("orders")
     public CompletionStage<Void> processOrder(JsonObject order) {
@@ -51,7 +53,8 @@ public class OrdersService {
                     order.put("approved", false);
                     order.put("reason", result.getString("message"));
                 }
-                processedOrders.send(order);
+                processedOrdersService.orderPrcessed(order);
+                // processedOrders.send(order);
                 events.sendEvent("Order " + order.getString("order-id") + " processed");
             });
     }
