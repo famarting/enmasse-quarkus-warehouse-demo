@@ -20,7 +20,7 @@ build_jar:
 	mvn package -DskipTests
 
 build_native: 
-	mvn package -Pnative -Dnative-image.docker-build=true
+	mvn package -Pnative -Dquarkus.native.container-build=true
 
 container_build_jvm:
 	$(CONTAINER_CTL) build -f src/main/docker/Dockerfile.jvm -t $(ORG_NAME)-$(PROJECT_NAME) .

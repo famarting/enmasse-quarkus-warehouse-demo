@@ -1,8 +1,6 @@
 package io.famartin.warehouse;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.time.Duration;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -17,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.vertx.amqp.AmqpClientOptions;
-import io.vertx.axle.amqp.AmqpConnection;
 
 /**
  * OrdersServiceHealthCheck
@@ -29,7 +26,7 @@ public class AmqpConnectionHealthCheck implements HealthCheck {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Inject
-    io.vertx.axle.core.Vertx vertx;
+    io.vertx.mutiny.core.Vertx vertx;
 
     @ConfigProperty(name = "amqp-host")
     String amqpHost;
@@ -43,22 +40,29 @@ public class AmqpConnectionHealthCheck implements HealthCheck {
     @ConfigProperty(name = "amqp-password")
     String amqpPassword;
 
-    private io.vertx.axle.amqp.AmqpClient axleClient;
+    private io.vertx.mutiny.amqp.AmqpClient amqpClient;
 
     @PostConstruct
     public void init() {
-        axleClient = io.vertx.axle.amqp.AmqpClient.create(vertx, new AmqpClientOptions().setSsl(false).setHost(amqpHost)
-                .setPort(amqpPort).setUsername(amqpUsername).setPassword(amqpPassword));
+        logger.info("Connecting to "+amqpHost+":"+amqpPort+ " usr "+amqpUsername+" "+amqpPassword);
+        amqpClient = io.vertx.mutiny.amqp.AmqpClient.create(vertx, 
+            new AmqpClientOptions()
+                .setSsl(false)
+                .setHost(amqpHost)
+                .setPort(amqpPort)
+                .setUsername(amqpUsername)
+                .setPassword(amqpPassword)
+                .setConnectTimeout(5 * 1000)
+        );
     }
 
     @Override
     public HealthCheckResponse call() {
         HealthCheckResponseBuilder responseBuilder = HealthCheckResponse.named("amqp-connection");
         try {
-            AmqpConnection conn = axleClient.connect().toCompletableFuture().get(5, TimeUnit.SECONDS);
-            conn.close();
+            amqpClient.connect().await().atMost(Duration.ofSeconds(10)).close();
             responseBuilder.up();
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        } catch (Exception e) {
             logger.error("Error in health check", e);
             responseBuilder.down();
         }
