@@ -33,6 +33,12 @@ oc get addressspace
 oc get address
 ```
 ### Deploy the application
+
+#### Deploy mongodb for stocks-service
+```bash
+make deploy-mongo
+```
+#### Deploy the microservices
 ```bash
 oc apply -f deployment_bundle
 ```
