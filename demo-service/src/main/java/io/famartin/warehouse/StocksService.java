@@ -75,11 +75,11 @@ public class StocksService {
                         String replyToAddress = replyReceiver.result().address();
                         replyReceiver.result().handler(msg -> {
                             stage.complete(msg.bodyAsJsonObject());
-                            connection.close(Future.succeededFuture());
+                            connection.close(cr -> {});
                         });
                         replyReceiver.result().exceptionHandler(ex -> {
                             logger.error("Error in stocks service ", ex);
-                            connection.close(Future.succeededFuture());
+                            connection.close(cr -> {});
                         });
                         connection.createSender(STOCKS_ADDRESS, sender -> {
                             if(sender.succeeded()) {
@@ -91,12 +91,12 @@ public class StocksService {
                                 sender.result().send(requestMessage);
                             } else {
                                 stage.completeExceptionally(sender.cause());
-                                connection.close(Future.succeededFuture());
+                                connection.close(cr -> {});
                             }
                         });
                     } else {
                         stage.completeExceptionally(replyReceiver.cause());
-                        connection.close(Future.succeededFuture());
+                        connection.close(cr -> {});
                     }
                 });
             } else {
