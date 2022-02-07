@@ -5,7 +5,7 @@ PROJECT_NAME=$(shell realpath --relative-to="$(realpath $(TOPDIR))" "$(shell pwd
 
 CONTAINER_TARGETS = container_tag container_push
 
-TAG ?= latest
+TAG ?= latest-dev
 PROJECT_TAG_NAME = $(CONTAINER_REGISTRY)/$(ORG_NAME)/$(PROJECT_NAME):$(TAG)
 
 container: build_jar container_build_jvm $(CONTAINER_TARGETS)
@@ -42,7 +42,22 @@ clean_deployment_bundle:
 prepare_deployment_bundle:
 	mkdir -p deployment_bundle
 
+# DEPLOYMENT_TEMPLATE=../template/deployment-template.yaml
+# ifneq (,$(wildcard ./template/deployment-template.yaml))
+# DEPLOYMENT_TEMPLATE=./template/deployment-template.yaml
+# endif
+
+# deployment_bundle: clean_deployment_bundle prepare_deployment_bundle
+# 	oc process -f $(DEPLOYMENT_TEMPLATE) -p CONTAINER_IMAGE=$(PROJECT_TAG_NAME) -p SERVICE_NAME=$(PROJECT_NAME) -o yaml > deployment_bundle/$(PROJECT_NAME).yaml
+
+DEPLOYMENT_TEMPLATE=../template/bundle.yaml
+ifneq (,$(wildcard ./template/bundle.yaml))
+DEPLOYMENT_TEMPLATE=./template/bundle.yaml
+endif
+
 deployment_bundle: clean_deployment_bundle prepare_deployment_bundle
-	oc process -f ../template/deployment-template.yaml -p CONTAINER_IMAGE=$(PROJECT_TAG_NAME) -p SERVICE_NAME=$(PROJECT_NAME) -o yaml > deployment_bundle/$(PROJECT_NAME).yaml
+	cp $(DEPLOYMENT_TEMPLATE) deployment_bundle/$(PROJECT_NAME).yaml
+	sed -i 's,$${CONTAINER_IMAGE},$(PROJECT_TAG_NAME),g' deployment_bundle/$(PROJECT_NAME).yaml
+	sed -i 's,$${SERVICE_NAME},$(PROJECT_NAME),g' deployment_bundle/$(PROJECT_NAME).yaml
 
 .PHONY: clean_deployment_bundle prepare_deployment_bundle deployment_bundle container_build_jvm container_build_native $(CONTAINER_TARGETS) dev build_jar build_native container container_native

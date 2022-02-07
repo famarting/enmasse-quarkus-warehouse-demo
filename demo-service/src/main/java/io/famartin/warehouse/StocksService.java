@@ -15,7 +15,6 @@ import io.vertx.amqp.AmqpClient;
 import io.vertx.amqp.AmqpClientOptions;
 import io.vertx.amqp.AmqpConnection;
 import io.vertx.amqp.AmqpMessage;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
